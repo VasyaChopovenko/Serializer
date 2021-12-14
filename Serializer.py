@@ -1,3 +1,4 @@
+import tkinter
 from functools import partial
 from tkinter import *
 import json
@@ -9,10 +10,11 @@ filePath = "D:"
 
 
 class Model:
-    def __init__(self, first_name, second_name, company):
+    def __init__(self, first_name, second_name, company, x):
         self.first_name = first_name
         self.second_name = second_name
         self.company = company
+        self.x = x
 
 
 class CSVSerDes:
@@ -68,9 +70,34 @@ class MainWindow:
     def create(self):
         window = Tk()
         window.title(self.title)
+        window.resizable(False, False)
 
         window.geometry("400x400")
-        self.create_window_elements()
+        model_fields = self.custom_model.__dict__
+
+        for field in model_fields:
+            label = Label(text=field)
+            label.pack()
+
+            field_value = StringVar()
+            field_value.set(model_fields[field])
+            field_entry = Entry(textvariable=field_value)
+            field_entry.pack()
+
+            self.bound_property_and_entry[field] = field_value
+
+        menu_value = StringVar()
+        menu_value.set("JSON")
+        om = OptionMenu(window, menu_value, "JSON", "XML", "CSV")
+        om.config(width=6, height=1, bg='#ecd8c8')
+
+        menu_value.get()
+        ser_btn = Button(text="Serialize", command=lambda: self.btn_click_ser(menu_value.get()), width=10, height=1, bg='#f6ce79')
+        ser_btn.pack(pady=5)
+        des_btn = Button(text="Deserialize", command=lambda: self.btn_click_des(menu_value.get()), width=10, height=1, bg='#c5bffb')
+        des_btn.pack()
+        om.pack(pady=5)
+        om.place()
 
         window.mainloop()
 
@@ -92,30 +119,7 @@ class MainWindow:
         for field in deserialized_object.__dict__:
             self.bound_property_and_entry[field].set(deserialized_object.__dict__[field])
 
-    def create_window_elements(self):
-        model_fields = self.custom_model.__dict__
 
-        for field in model_fields:
-            label = Label(text=field)
-            label.pack()
-
-            field_value = StringVar()
-            field_value.set(model_fields[field])
-            field_entry = Entry(textvariable=field_value)
-            field_entry.pack()
-
-            self.bound_property_and_entry[field] = field_value
-
-        ser_types = ["JSON", "XML", "CSV"]
-        for ser_type in ser_types:
-            btn = Button(text="Serialize to " + ser_type, command=partial(self.btn_click_ser, ser_type))
-            btn.pack()
-
-        for ser_type in ser_types:
-            btn = Button(text="Deserialize from " + ser_type, command=partial(self.btn_click_des, ser_type))
-            btn.pack()
-
-
-model = Model("John", "Khon", "Google")
+model = Model("John", "Khon", "Google", "x")
 
 MainWindow(model).create()
